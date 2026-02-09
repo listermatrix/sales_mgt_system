@@ -1,6 +1,8 @@
-# Sales Management System v2.0 - Production Ready
+# Sales Management System v2.0
 
-A professional, enterprise-grade sales management system demonstrating advanced Laravel concepts, microservices architecture, and production-ready code patterns.
+## Purpose
+This project is a sample application created solely for demonstration and
+evaluation purposes. It is not intended for production use.
 
 ![Laravel](https://img.shields.io/badge/Laravel-12.x-red)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-blue)
@@ -8,9 +10,7 @@ A professional, enterprise-grade sales management system demonstrating advanced 
 ![Redis](https://img.shields.io/badge/Redis-7.0+-red)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🚀 What's New in v2.0
-
-### Advanced Features
+## Advanced Features
 - ✅ **Payment Integration** - Stripe, PayPal, and Paystack support
 - ✅ **Email Notifications** - Order confirmations and payment receipts
 - ✅ **API Resources** - Clean data transformation layer
@@ -22,7 +22,6 @@ A professional, enterprise-grade sales management system demonstrating advanced 
 - ✅ **Service Layer Pattern** - Business logic separation
 - ✅ **Gateway Pattern** - Multiple payment gateway support
 
-### Code Quality Improvements
 - ✅ **Type Safety** - Full type hints and return types
 - ✅ **Error Handling** - Comprehensive exception handling
 - ✅ **Logging** - Detailed logging for all operations
@@ -578,5 +577,5 @@ MIT License - see LICENSE file for details
 **Built with ❤️ using Laravel 12, PHP 8.2+, and Modern Architecture Patterns**
 
 **Version**: 2.0.0  
-**Status**: Production Ready  
+**Status**: Evaluation Ready  
 **Last Updated**: February 2026
