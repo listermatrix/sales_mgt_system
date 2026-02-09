@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Customer\Controllers;
+namespace App\Services\Customer\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Services\Customer\Repositories\CustomerRepositoryInterface;
-use App\Services\Customer\Requests\StoreCustomerRequest;
-use App\Services\Customer\Requests\UpdateCustomerRequest;
 use App\Services\Customer\Events\CustomerCreated;
+use App\Services\Customer\Http\Requests\StoreCustomerRequest;
+use App\Services\Customer\Http\Requests\UpdateCustomerRequest;
+use App\Services\Customer\Repositories\CustomerRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
 class CustomerController extends Controller
@@ -14,7 +14,7 @@ class CustomerController extends Controller
     /**
      * @var CustomerRepositoryInterface
      */
-    protected $customerRepository;
+    protected CustomerRepositoryInterface $customerRepository;
 
     /**
      * CustomerController constructor.

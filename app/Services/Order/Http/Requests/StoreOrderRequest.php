@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Order\Requests;
+namespace App\Services\Order\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;

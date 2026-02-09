@@ -1,402 +1,582 @@
-# Sales Management System - Microservices Architecture
+# Sales Management System v2.0 - Production Ready
 
-A minimal sales management system demonstrating microservices architecture pattern in Laravel with a shared database approach.
+A professional, enterprise-grade sales management system demonstrating advanced Laravel concepts, microservices architecture, and production-ready code patterns.
 
 ![Laravel](https://img.shields.io/badge/Laravel-12.x-red)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-blue)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange)
+![Redis](https://img.shields.io/badge/Redis-7.0+-red)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🏗️ Architecture Overview
+## 🚀 What's New in v2.0
 
-This project demonstrates a **modular microservices architecture** within a Laravel monolith, where each service:
-- Has its own folder structure
-- Uses dedicated service providers
-- Maintains independent migrations
-- Implements repository pattern
-- Communicates via events
+### Advanced Features
+- ✅ **Payment Integration** - Stripe, PayPal, and Paystack support
+- ✅ **Email Notifications** - Order confirmations and payment receipts
+- ✅ **API Resources** - Clean data transformation layer
+- ✅ **Rate Limiting** - Tiered rate limiting with custom middleware
+- ✅ **PHP 8.2+ Enums** - Type-safe status handling
+- ✅ **Constants Management** - Centralized error codes and HTTP status
+- ✅ **API Response Trait** - Consistent response formatting
+- ✅ **Advanced OOP** - Interfaces, abstract classes, traits
+- ✅ **Service Layer Pattern** - Business logic separation
+- ✅ **Gateway Pattern** - Multiple payment gateway support
 
-### Architecture Pattern
-- **Pattern**: Microservices with shared database (modular monolith)
-- **Communication**: Event-driven architecture
-- **Data Access**: Repository pattern
-- **API Style**: RESTful
+### Code Quality Improvements
+- ✅ **Type Safety** - Full type hints and return types
+- ✅ **Error Handling** - Comprehensive exception handling
+- ✅ **Logging** - Detailed logging for all operations
+- ✅ **Documentation** - PHPDoc blocks for all methods
+- ✅ **SOLID Principles** - Clean architecture patterns
+- ✅ **Design Patterns** - Repository, Factory, Strategy, Observer
 
-## 📁 Project Structure
+---
+
+## 📁 Enhanced Architecture
 
 ```
-app/Services/
-├── Customer/
-│   ├── Providers/
-│   │   └── CustomerServiceProvider.php
-│   ├── Models/
-│   │   └── Customer.php
-│   ├── Controllers/
-│   │   └── CustomerController.php
-│   ├── Repositories/
-│   │   ├── CustomerRepositoryInterface.php
-│   │   └── CustomerRepository.php
-│   ├── Routes/
-│   │   └── customer.php
-│   ├── Migrations/
-│   │   └── 2024_01_01_000001_create_customers_table.php
-│   ├── Events/
-│   │   └── CustomerCreated.php
-│   └── Requests/
-│       ├── StoreCustomerRequest.php
-│       └── UpdateCustomerRequest.php
-├── Product/
-│   └── [Similar structure]
-└── Order/
-    └── [Similar structure with Listeners]
+app/
+├── Constants/
+│   ├── HttpStatusCode.php
+│   └── ErrorCode.php
+├── Enums/
+│   ├── OrderStatus.php
+│   ├── PaymentStatus.php
+│   ├── PaymentGateway.php
+│   └── ReportType.php
+├── Traits/
+│   └── ApiResponse.php
+├── Http/
+│   ├── Middleware/
+│   │   └── ApiRateLimiter.php
+│   └── Resources/
+│       ├── Customer/
+│       │   └── CustomerResource.php
+│       ├── Product/
+│       │   └── ProductResource.php
+│       ├── Order/
+│       │   ├── OrderResource.php
+│       │   └── OrderItemResource.php
+│       └── Payment/
+│           └── PaymentResource.php
+└── Services/
+    ├── Customer/
+    ├── Product/
+    ├── Order/
+    ├── Payment/
+    │   ├── Models/
+    │   │   └── Payment.php
+    │   ├── Contracts/
+    │   │   └── PaymentGatewayInterface.php
+    │   ├── Services/
+    │   │   ├── PaymentService.php
+    │   │   ├── StripeGateway.php
+    │   │   ├── PayPalGateway.php
+    │   │   └── PaystackGateway.php
+    │   └── Migrations/
+    │       └── create_payments_table.php
+    └── Notification/
+        └── Mail/
+            ├── OrderConfirmationMail.php
+            └── PaymentSuccessMail.php
 ```
 
-## 🚀 Features
+---
 
-### Customer Service
-- Create, read, update, and delete customers
-- Email uniqueness validation
-- Soft deletes support
-- Event dispatching on customer creation
+## 🎯 Key Features
 
-### Product Service
-- Complete product catalog management
-- SKU-based inventory tracking
-- Stock level management
-- Low stock monitoring
-- Price management
+### 1. Payment Processing
 
-### Order Service
-- Create orders with multiple items
-- Automatic stock deduction
-- Order status management (pending, processing, completed, cancelled)
-- Customer order history
-- Event-driven stock updates
+**Three Payment Gateways Supported:**
 
-## 🛠️ Tech Stack
+#### Stripe
+```php
+// Automatic integration with Stripe's Payment Intents API
+$payment = Payment::create([
+    'order_id' => $order->id,
+    'gateway' => PaymentGateway::STRIPE,
+    'amount' => $order->total_amount,
+]);
 
-- **Framework**: Laravel 11.x
-- **PHP**: 8.2+
-- **Database**: MySQL 8.0+
-- **Cache**: Redis (optional)
-- **Queue**: Database/Redis
-
-## 📋 Prerequisites
-
-- PHP >= 8.2
-- Composer
-- MySQL >= 8.0
-- Node.js & NPM (for frontend assets, optional)
-
-## ⚙️ Installation
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/yourusername/sales-management-system.git
-cd sales-management-system
+$result = app(PaymentService::class)->processPayment($payment);
 ```
 
-### 2. Install Dependencies
-
-```bash
-composer install
+#### PayPal
+```php
+// PayPal checkout integration
+$payment = Payment::create([
+    'gateway' => PaymentGateway::PAYPAL,
+    // ...
+]);
 ```
 
-### 3. Environment Configuration
-
-```bash
-cp .env.example .env
-php artisan key:generate
+#### Paystack
+```php
+// Paystack for African markets
+$payment = Payment::create([
+    'gateway' => PaymentGateway::PAYSTACK,
+    // ...
+]);
 ```
 
-### 4. Configure Database
+### 2. Email Notifications
 
-Edit `.env` file:
+**Automated email notifications for:**
+- Order confirmations
+- Payment success
+- Payment failures
+- Order status updates
 
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=sales_management
-DB_USERNAME=root
-DB_PASSWORD=your_password
+```php
+// Automatic email on order creation
+Mail::to($customer->email)->send(
+    new OrderConfirmationMail($order)
+);
 ```
 
-### 5. Create Database
+### 3. Advanced Rate Limiting
 
-```bash
-mysql -u root -p
-CREATE DATABASE sales_management;
-exit;
+**Tiered rate limiting:**
+- Authentication: 5 requests/minute
+- Payment operations: 10 requests/minute
+- Read operations: 100 requests/minute
+- Write operations: 50 requests/minute
+
+```php
+Route::middleware(['api.rate.limit:payment'])->group(function () {
+    Route::post('/payments', [PaymentController::class, 'store']);
+});
 ```
 
-### 6. Run Migrations
+### 4. API Resources
 
-```bash
-php artisan migrate
-```
+**Clean data transformation:**
 
-### 7. Seed Database (Optional)
-
-```bash
-php artisan db:seed
-```
-
-### 8. Start Development Server
-
-```bash
-php artisan serve
-```
-
-The application will be available at `http://localhost:8000`
-
-## 📡 API Endpoints
-
-### Customer Service
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/customers` | Get all customers |
-| POST | `/api/customers` | Create new customer |
-| GET | `/api/customers/{id}` | Get customer details |
-| PUT | `/api/customers/{id}` | Update customer |
-| DELETE | `/api/customers/{id}` | Delete customer |
-
-### Product Service
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/products` | Get all products |
-| POST | `/api/products` | Create new product |
-| GET | `/api/products/{id}` | Get product details |
-| PUT | `/api/products/{id}` | Update product |
-| DELETE | `/api/products/{id}` | Delete product |
-
-### Order Service
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders` | Get all orders |
-| POST | `/api/orders` | Create new order |
-| GET | `/api/orders/{id}` | Get order details |
-| PUT | `/api/orders/{id}/status` | Update order status |
-
-## 📝 API Request Examples
-
-### Create Customer
-
-```bash
-curl -X POST http://localhost:8000/api/customers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "+1234567890",
-    "address": "123 Main St, City, Country"
-  }'
-```
-
-### Create Product
-
-```bash
-curl -X POST http://localhost:8000/api/products \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Laptop",
-    "description": "High-performance laptop",
-    "sku": "LAP-001",
-    "price": 999.99,
+```php
+// Before (raw model)
+{
+    "id": 1,
+    "price": "1299.99",
     "stock_quantity": 50
-  }'
+}
+
+// After (with resource)
+{
+    "id": 1,
+    "price": {
+        "amount": 1299.99,
+        "formatted": "$1,299.99",
+        "currency": "USD"
+    },
+    "stock": {
+        "quantity": 50,
+        "available": true,
+        "status": "in_stock"
+    }
+}
 ```
 
-### Create Order
+### 5. Type-Safe Enums
+
+**PHP 8.2+ Enums for better type safety:**
+
+```php
+// Order status with methods
+$status = OrderStatus::PENDING;
+
+if ($status->canBeCancelled()) {
+    $order->cancel();
+}
+
+$nextStatuses = $status->nextStatuses();
+// Returns: [OrderStatus::PROCESSING, OrderStatus::CANCELLED]
+```
+
+---
+
+## 📊 Database Schema (Enhanced)
+
+### New Tables
+
+#### Payments Table
+```sql
+CREATE TABLE payments (
+    id BIGINT UNSIGNED PRIMARY KEY,
+    order_id BIGINT UNSIGNED,
+    transaction_id VARCHAR(255) UNIQUE,
+    gateway VARCHAR(255),  -- stripe, paypal, paystack
+    amount DECIMAL(10,2),
+    currency VARCHAR(3),
+    status VARCHAR(255),   -- pending, completed, failed, refunded
+    metadata JSON,
+    paid_at TIMESTAMP NULL,
+    refunded_at TIMESTAMP NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+```
+
+---
+
+## 🔧 Installation
+
+### Prerequisites
+- PHP 8.2+
+- Composer
+- MySQL 8.0+
+- Redis 7.0+ (recommended)
+- Node.js & NPM (optional)
+
+### Step-by-Step Installation
+
+1. **Clone & Install Dependencies**
+   ```bash
+   git clone <repository>
+   cd sales-management-system
+   composer install
+   ```
+
+2. **Environment Setup**
+   ```bash
+   cp .env.example.v2 .env
+   php artisan key:generate
+   ```
+
+3. **Configure Database**
+   ```env
+   DB_DATABASE=sales_management_v2
+   DB_USERNAME=root
+   DB_PASSWORD=your_password
+   ```
+
+4. **Configure Payment Gateways**
+
+   **Stripe:**
+   ```env
+   STRIPE_ENABLED=true
+   STRIPE_SECRET_KEY=sk_test_your_key
+   STRIPE_PUBLIC_KEY=pk_test_your_key
+   ```
+
+   **PayPal:**
+   ```env
+   PAYPAL_ENABLED=true
+   PAYPAL_MODE=sandbox
+   PAYPAL_CLIENT_ID=your_client_id
+   PAYPAL_CLIENT_SECRET=your_secret
+   ```
+
+   **Paystack:**
+   ```env
+   PAYSTACK_ENABLED=true
+   PAYSTACK_SECRET_KEY=sk_test_your_key
+   PAYSTACK_PUBLIC_KEY=pk_test_your_key
+   ```
+
+5. **Configure Redis (Optional but Recommended)**
+   ```env
+   CACHE_DRIVER=redis
+   QUEUE_CONNECTION=redis
+   SESSION_DRIVER=redis
+   ```
+
+6. **Run Migrations & Seeders**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+7. **Start Services**
+   ```bash
+   # Terminal 1: Application
+   php artisan serve
+   
+   # Terminal 2: Queue Worker (for emails)
+   php artisan queue:work
+   
+   # Terminal 3: Schedule Runner (for reports)
+   php artisan schedule:work
+   ```
+
+---
+
+## 📡 API Endpoints (Enhanced)
+
+### Payment Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/payments/gateways` | Get available payment gateways |
+| POST | `/api/payments` | Initiate payment |
+| GET | `/api/payments/{id}` | Get payment details |
+| POST | `/api/payments/{id}/verify` | Verify payment |
+| POST | `/api/payments/{id}/refund` | Refund payment |
+
+### Example: Process Payment
 
 ```bash
-curl -X POST http://localhost:8000/api/orders \
+curl -X POST http://localhost:8000/api/payments \
   -H "Content-Type: application/json" \
   -d '{
-    "customer_id": 1,
-    "items": [
-      {
-        "product_id": 1,
-        "quantity": 2
-      },
-      {
-        "product_id": 2,
-        "quantity": 1
-      }
-    ]
+    "order_id": 1,
+    "gateway": "stripe",
+    "amount": 1299.99
   }'
 ```
 
-## 🎯 API Response Format
-
-### Success Response
-
+**Response:**
 ```json
 {
   "success": true,
   "data": {
     "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com"
+    "order_id": 1,
+    "gateway": {
+      "value": "stripe",
+      "label": "Stripe"
+    },
+    "amount": {
+      "value": 1299.99,
+      "formatted": "$1,299.99",
+      "currency": "USD"
+    },
+    "status": {
+      "value": "pending",
+      "label": "Pending"
+    },
+    "authorization_url": "https://checkout.stripe.com/..."
   },
-  "message": "Operation successful"
+  "message": "Payment initiated successfully"
 }
 ```
-
-### Error Response
-
-```json
-{
-  "success": false,
-  "error": {
-    "message": "Customer not found",
-    "code": "CUSTOMER_NOT_FOUND"
-  }
-}
-```
-
-## 🔄 Event Flow
-
-### Order Creation Flow
-
-1. **OrderController** receives order request
-2. Validates customer and products exist
-3. Checks product stock availability
-4. Creates order in database transaction
-5. Decreases product stock
-6. Dispatches `OrderPlaced` event
-7. `UpdateProductStock` listener logs the event
-8. Returns order with all items
-
-### Event Listeners
-
-- `CustomerCreated`: Triggered when a new customer is created
-- `ProductStockUpdated`: Triggered when product stock changes
-- `OrderPlaced`: Triggered when an order is successfully placed
-
-## 🧪 Testing
-
-### Run All Tests
-
-```bash
-php artisan test
-```
-
-### Run Specific Test Suite
-
-```bash
-php artisan test --testsuite=Feature
-php artisan test --testsuite=Unit
-```
-
-### Run Tests with Coverage
-
-```bash
-php artisan test --coverage
-```
-
-## 📊 Database Schema
-
-### Customers Table
-- id (primary key)
-- name
-- email (unique)
-- phone
-- address
-- timestamps
-- soft deletes
-
-### Products Table
-- id (primary key)
-- name
-- description
-- sku (unique)
-- price
-- stock_quantity
-- timestamps
-- soft deletes
-
-### Orders Table
-- id (primary key)
-- customer_id (foreign key)
-- total_amount
-- status (enum: pending, processing, completed, cancelled)
-- timestamps
-- soft deletes
-
-### Order Items Table
-- id (primary key)
-- order_id (foreign key)
-- product_id (foreign key)
-- quantity
-- unit_price
-- subtotal
-- timestamps
-
-## 🏛️ Design Patterns Used
-
-1. **Repository Pattern**: Abstracts data access logic
-2. **Service Provider Pattern**: Registers and bootstraps services
-3. **Event-Driven Architecture**: Loose coupling between services
-4. **Dependency Injection**: For better testability
-5. **Request Validation**: Dedicated form request classes
-6. **Soft Deletes**: For data recovery
-
-## 🔐 Security Features
-
-- Input validation on all endpoints
-- SQL injection prevention via Eloquent ORM
-- Mass assignment protection
-- CSRF protection
-- Prepared statements for queries
-
-## 🚦 API Status Codes
-
-- `200 OK`: Successful GET, PUT requests
-- `201 Created`: Successful POST request
-- `400 Bad Request`: Validation errors, insufficient stock
-- `404 Not Found`: Resource not found
-- `422 Unprocessable Entity`: Validation failed
-- `500 Internal Server Error`: Server errors
-
-## 📈 Performance Considerations
-
-- Database indexing on foreign keys and frequently queried fields
-- Eager loading relationships to prevent N+1 queries
-- Repository pattern for query optimization
-- Soft deletes for data integrity
-- Transaction support for data consistency
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 👨‍💻 Author
-
-Your Name - [GitHub Profile](https://github.com/yourusername)
-
-## 🙏 Acknowledgments
-
-- Laravel Framework
-- PHP Community
-- Microservices Architecture Patterns
-
-## 📞 Support
-
-For support, email your-email@example.com or create an issue in the repository.
 
 ---
 
-**Built with ❤️ using Laravel and Microservices Architecture**
+## 🏗️ Advanced Concepts Demonstrated
+
+### 1. Interface-Driven Development
+
+```php
+// Payment gateway interface
+interface PaymentGatewayInterface {
+    public function initiate(Payment $payment): array;
+    public function verify(string $reference): array;
+    public function refund(Payment $payment, ?float $amount = null): array;
+}
+
+// Multiple implementations
+class StripeGateway implements PaymentGatewayInterface { }
+class PayPalGateway implements PaymentGatewayInterface { }
+class PaystackGateway implements PaymentGatewayInterface { }
+```
+
+### 2. Service Layer Pattern
+
+```php
+class PaymentService {
+    public function processPayment(Payment $payment): array {
+        $gateway = $this->gateway($payment->gateway);
+        return $gateway->initiate($payment);
+    }
+    
+    private function gateway(PaymentGateway $gateway): PaymentGatewayInterface {
+        return match ($gateway) {
+            PaymentGateway::STRIPE => app(StripeGateway::class),
+            PaymentGateway::PAYPAL => app(PayPalGateway::class),
+            PaymentGateway::PAYSTACK => app(PaystackGateway::class),
+        };
+    }
+}
+```
+
+### 3. PHP 8.2+ Enums with Methods
+
+```php
+enum OrderStatus: string {
+    case PENDING = 'pending';
+    case PROCESSING = 'processing';
+    case COMPLETED = 'completed';
+    
+    public function canBeCancelled(): bool {
+        return in_array($this, [self::PENDING, self::PROCESSING]);
+    }
+    
+    public function nextStatuses(): array {
+        return match ($this) {
+            self::PENDING => [self::PROCESSING, self::CANCELLED],
+            self::PROCESSING => [self::COMPLETED, self::FAILED],
+            default => [],
+        };
+    }
+}
+```
+
+### 4. API Response Trait
+
+```php
+trait ApiResponse {
+    protected function successResponse(mixed $data, string $message): JsonResponse {
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'message' => $message,
+        ], HttpStatusCode::OK);
+    }
+    
+    protected function errorResponse(
+        string $message,
+        string $code,
+        int $status
+    ): JsonResponse {
+        return response()->json([
+            'success' => false,
+            'error' => ['message' => $message, 'code' => $code],
+        ], $status);
+    }
+}
+```
+
+### 5. Custom Rate Limiting
+
+```php
+class ApiRateLimiter {
+    protected function getMaxAttempts(string $tier): int {
+        return match ($tier) {
+            'auth' => 5,
+            'payment' => 10,
+            'read' => 100,
+            'write' => 50,
+            'default' => 60,
+        };
+    }
+}
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Unit Tests
+```bash
+php artisan test --testsuite=Unit
+```
+
+Tests for:
+- Payment gateway services
+- Enum methods
+- API response trait
+- Business logic
+
+### Integration Tests
+```bash
+php artisan test --testsuite=Feature
+```
+
+Tests for:
+- Payment processing flow
+- Email sending
+- Rate limiting
+- API endpoints
+
+---
+
+## 📈 Performance Optimizations
+
+1. **Redis Caching**
+    - Session management
+    - Cache frequently accessed data
+    - Queue management
+
+2. **Database Indexing**
+    - Foreign keys indexed
+    - Status columns indexed
+    - Transaction IDs indexed
+
+3. **Eager Loading**
+   ```php
+   $orders = Order::with(['items.product', 'payment'])->get();
+   ```
+
+4. **API Resource Collections**
+   ```php
+   return CustomerResource::collection($customers);
+   ```
+
+---
+
+## 🔐 Security Features
+
+1. **Rate Limiting** - Prevent API abuse
+2. **Input Validation** - Comprehensive request validation
+3. **SQL Injection Prevention** - Eloquent ORM
+4. **XSS Protection** - Output escaping
+5. **CSRF Protection** - Laravel built-in
+6. **Payment Security** - Gateway-handled PCI compliance
+
+---
+
+## 📚 Documentation
+
+- [Installation Guide](INSTALLATION_V2.md)
+- [API Documentation](API_DOCUMENTATION_V2.md)
+- [Architecture Guide](ARCHITECTURE_V2.md)
+- [Payment Integration Guide](PAYMENT_INTEGRATION.md)
+- [Email Configuration](EMAIL_SETUP.md)
+
+---
+
+## 🎓 Learning Outcomes
+
+This project demonstrates:
+- ✅ Advanced Laravel features (Enums, Resources, Middleware)
+- ✅ SOLID principles in practice
+- ✅ Design patterns (Repository, Strategy, Factory, Observer)
+- ✅ Payment gateway integration
+- ✅ Email queue management
+- ✅ API best practices
+- ✅ Type-safe programming with PHP 8.2+
+- ✅ Clean architecture
+- ✅ Production-ready code patterns
+
+---
+
+## 🚢 Deployment Checklist
+
+- [ ] Set `APP_DEBUG=false`
+- [ ] Configure production database
+- [ ] Set up HTTPS
+- [ ] Configure real payment gateway credentials
+- [ ] Set up email service (SendGrid, Mailgun, SES)
+- [ ] Configure Redis for production
+- [ ] Set up queue workers
+- [ ] Configure log rotation
+- [ ] Enable rate limiting
+- [ ] Set up monitoring (Sentry, New Relic)
+- [ ] Configure backups
+- [ ] Run `composer install --optimize-autoloader --no-dev`
+- [ ] Run `php artisan config:cache`
+- [ ] Run `php artisan route:cache`
+- [ ] Run `php artisan view:cache`
+
+---
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- Open an issue on GitHub
+- Email: support@salesmanagement.com
+- Documentation: [docs.salesmanagement.com](https://docs.salesmanagement.com)
+
+---
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+---
+
+**Built with ❤️ using Laravel 11, PHP 8.2+, and Modern Architecture Patterns**
+
+**Version**: 2.0.0  
+**Status**: Production Ready  
+**Last Updated**: February 2024

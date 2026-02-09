@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Product\Controllers;
+namespace App\Services\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Services\Product\Repositories\ProductRepositoryInterface;
-use App\Services\Product\Requests\StoreProductRequest;
-use App\Services\Product\Requests\UpdateProductRequest;
 use App\Services\Product\Events\ProductStockUpdated;
+use App\Services\Product\Http\Requests\StoreProductRequest;
+use App\Services\Product\Http\Requests\UpdateProductRequest;
+use App\Services\Product\Repositories\ProductRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
@@ -14,7 +14,7 @@ class ProductController extends Controller
     /**
      * @var ProductRepositoryInterface
      */
-    protected $productRepository;
+    protected ProductRepositoryInterface $productRepository;
 
     /**
      * ProductController constructor.

@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Services\Order\Requests;
+namespace App\Services\Customer\Http\Requests;
 
-use App\Services\Order\Models\Order;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UpdateOrderStatusRequest extends FormRequest
+class StoreCustomerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,16 +23,10 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => [
-                'required',
-                'string',
-                Rule::in([
-                    Order::STATUS_PENDING,
-                    Order::STATUS_PROCESSING,
-                    Order::STATUS_COMPLETED,
-                    Order::STATUS_CANCELLED,
-                ]),
-            ],
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:customers,email',
+            'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:500',
         ];
     }
 
@@ -46,8 +38,11 @@ class UpdateOrderStatusRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.required' => 'Order status is required',
-            'status.in' => 'Invalid order status. Must be one of: pending, processing, completed, cancelled',
+            'name.required' => 'Customer name is required',
+            'email.required' => 'Email address is required',
+            'email.email' => 'Please provide a valid email address',
+            'email.unique' => 'This email address is already registered',
+            'phone.required' => 'Phone number is required',
         ];
     }
 }

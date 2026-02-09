@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Services\Order\Controllers;
+namespace App\Services\Order\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Services\Order\Repositories\OrderRepositoryInterface;
-use App\Services\Order\Requests\StoreOrderRequest;
-use App\Services\Order\Requests\UpdateOrderStatusRequest;
 use App\Services\Order\Events\OrderPlaced;
+use App\Services\Order\Http\Requests\StoreOrderRequest;
+use App\Services\Order\Http\Requests\UpdateOrderStatusRequest;
+use App\Services\Order\Repositories\OrderRepositoryInterface;
 use App\Services\Product\Repositories\ProductRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;

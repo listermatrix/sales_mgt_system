@@ -1,7 +1,7 @@
 <?php
 
+use App\Services\Product\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
-use App\Services\Product\Controllers\ProductController;
 
 /*
 |--------------------------------------------------------------------------
