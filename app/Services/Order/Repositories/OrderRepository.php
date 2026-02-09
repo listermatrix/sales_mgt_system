@@ -4,6 +4,8 @@ namespace App\Services\Order\Repositories;
 
 use App\Services\Order\Models\Order;
 use App\Services\Order\Models\OrderItem;
+use App\Enums\OrderStatus;
+use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -12,12 +14,12 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * @var Order
      */
-    protected $model;
+    protected Order $model;
 
     /**
      * @var OrderItem
      */
-    protected $orderItemModel;
+    protected OrderItem $orderItemModel;
 
     /**
      * OrderRepository constructor.
@@ -57,7 +59,7 @@ class OrderRepository implements OrderRepositoryInterface
      *
      * @param array $data
      * @return Order
-     * @throws \Exception
+     * @throws Exception
      */
     public function create(array $data): Order
     {
@@ -66,7 +68,7 @@ class OrderRepository implements OrderRepositoryInterface
             $order = $this->model->create([
                 'customer_id' => $data['customer_id'],
                 'total_amount' => 0,
-                'status' => Order::STATUS_PENDING,
+                'status' => OrderStatus::PENDING,
             ]);
 
             $totalAmount = 0;
@@ -105,7 +107,7 @@ class OrderRepository implements OrderRepositoryInterface
         $order = $this->find($id);
 
         if ($order) {
-            $order->update(['status' => $status]);
+            $order->update(['status' => OrderStatus::from($status)]);
             return $order->fresh();
         }
 

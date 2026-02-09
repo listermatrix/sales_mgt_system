@@ -2,7 +2,7 @@
 
 namespace App\Services\Order\Http\Requests;
 
-use App\Services\Order\Models\Order;
+use App\Enums\OrderStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -28,12 +28,7 @@ class UpdateOrderStatusRequest extends FormRequest
             'status' => [
                 'required',
                 'string',
-                Rule::in([
-                    Order::STATUS_PENDING,
-                    Order::STATUS_PROCESSING,
-                    Order::STATUS_COMPLETED,
-                    Order::STATUS_CANCELLED,
-                ]),
+                Rule::in(OrderStatus::values()),
             ],
         ];
     }
@@ -45,9 +40,11 @@ class UpdateOrderStatusRequest extends FormRequest
      */
     public function messages(): array
     {
+        $validStatuses = implode(', ', OrderStatus::values());
+
         return [
             'status.required' => 'Order status is required',
-            'status.in' => 'Invalid order status. Must be one of: pending, processing, completed, cancelled',
+            'status.in' => "Invalid order status. Must be one of: {$validStatuses}",
         ];
     }
 }

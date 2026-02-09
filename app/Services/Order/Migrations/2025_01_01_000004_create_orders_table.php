@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->decimal('total_amount', 10, 2)->default(0);
-            $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])->default('pending');
+            $table->string('status')->default('pending'); // pending, processing, completed, cancelled, failed, refunded
             $table->timestamps();
             $table->softDeletes();
 

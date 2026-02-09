@@ -2,28 +2,36 @@
 
 namespace App\Services\Customer\Http\Controllers;
 
+
+
 use App\Http\Controllers\Controller;
-use App\Services\Customer\Events\CustomerCreated;
+use App\Services\Customer\Http\Resources\CustomerResource;
+use App\Services\Customer\Repositories\CustomerRepositoryInterface;
 use App\Services\Customer\Http\Requests\StoreCustomerRequest;
 use App\Services\Customer\Http\Requests\UpdateCustomerRequest;
-use App\Services\Customer\Repositories\CustomerRepositoryInterface;
+use App\Services\Customer\Events\CustomerCreated;
+use App\Traits\ApiResponse;
+use App\Constants\ErrorCode;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Customer Controller
+ *
+ * Handles customer CRUD operations with API resources
+ */
 class CustomerController extends Controller
 {
-    /**
-     * @var CustomerRepositoryInterface
-     */
-    protected CustomerRepositoryInterface $customerRepository;
+    use ApiResponse;
 
     /**
      * CustomerController constructor.
      *
      * @param CustomerRepositoryInterface $customerRepository
      */
-    public function __construct(CustomerRepositoryInterface $customerRepository)
+    public function __construct(
+        private readonly CustomerRepositoryInterface $customerRepository
+    )
     {
-        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -35,11 +43,10 @@ class CustomerController extends Controller
     {
         $customers = $this->customerRepository->all();
 
-        return response()->json([
-            'success' => true,
-            'data' => $customers,
-            'message' => 'Customers retrieved successfully'
-        ], 200);
+        return $this->successResponse(
+            CustomerResource::collection($customers),
+            'Customers retrieved successfully'
+        );
     }
 
     /**
@@ -55,11 +62,10 @@ class CustomerController extends Controller
         // Dispatch customer created event
         event(new CustomerCreated($customer));
 
-        return response()->json([
-            'success' => true,
-            'data' => $customer,
-            'message' => 'Customer created successfully'
-        ], 201);
+        return $this->createdResponse(
+            new CustomerResource($customer),
+            'Customer created successfully'
+        );
     }
 
     /**
@@ -73,20 +79,16 @@ class CustomerController extends Controller
         $customer = $this->customerRepository->find($id);
 
         if (!$customer) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Customer not found',
-                    'code' => 'CUSTOMER_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::CUSTOMER_NOT_FOUND),
+                ErrorCode::CUSTOMER_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $customer,
-            'message' => 'Customer retrieved successfully'
-        ], 200);
+        return $this->successResponse(
+            new CustomerResource($customer),
+            'Customer retrieved successfully'
+        );
     }
 
     /**
@@ -101,20 +103,16 @@ class CustomerController extends Controller
         $customer = $this->customerRepository->update($id, $request->validated());
 
         if (!$customer) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Customer not found',
-                    'code' => 'CUSTOMER_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::CUSTOMER_NOT_FOUND),
+                ErrorCode::CUSTOMER_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $customer,
-            'message' => 'Customer updated successfully'
-        ], 200);
+        return $this->successResponse(
+            new CustomerResource($customer),
+            'Customer updated successfully'
+        );
     }
 
     /**
@@ -128,19 +126,15 @@ class CustomerController extends Controller
         $deleted = $this->customerRepository->delete($id);
 
         if (!$deleted) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Customer not found',
-                    'code' => 'CUSTOMER_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::CUSTOMER_NOT_FOUND),
+                ErrorCode::CUSTOMER_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => null,
-            'message' => 'Customer deleted successfully'
-        ], 200);
+        return $this->successResponse(
+            null,
+            'Customer deleted successfully'
+        );
     }
 }

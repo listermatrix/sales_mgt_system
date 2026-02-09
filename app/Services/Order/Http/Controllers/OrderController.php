@@ -1,27 +1,30 @@
 <?php
 
 namespace App\Services\Order\Http\Controllers;
-
 use App\Http\Controllers\Controller;
-use App\Services\Order\Events\OrderPlaced;
 use App\Services\Order\Http\Requests\StoreOrderRequest;
 use App\Services\Order\Http\Requests\UpdateOrderStatusRequest;
+use App\Services\Order\Http\Resources\OrderResource;
+use App\Services\Order\Notifications\OrderConfirmationMail;
 use App\Services\Order\Repositories\OrderRepositoryInterface;
+use App\Services\Order\Events\OrderPlaced;
 use App\Services\Product\Repositories\ProductRepositoryInterface;
+use App\Traits\ApiResponse;
+use App\Constants\ErrorCode;
+use App\Enums\OrderStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Order Controller
+ *
+ * Handles order operations with email notifications
+ */
 class OrderController extends Controller
 {
-    /**
-     * @var OrderRepositoryInterface
-     */
-    protected $orderRepository;
-
-    /**
-     * @var ProductRepositoryInterface
-     */
-    protected $productRepository;
+    use ApiResponse;
 
     /**
      * OrderController constructor.
@@ -30,11 +33,10 @@ class OrderController extends Controller
      * @param ProductRepositoryInterface $productRepository
      */
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
-        ProductRepositoryInterface $productRepository
-    ) {
-        $this->orderRepository = $orderRepository;
-        $this->productRepository = $productRepository;
+        private OrderRepositoryInterface   $orderRepository,
+        private ProductRepositoryInterface $productRepository
+    )
+    {
     }
 
     /**
@@ -46,11 +48,10 @@ class OrderController extends Controller
     {
         $orders = $this->orderRepository->all();
 
-        return response()->json([
-            'success' => true,
-            'data' => $orders,
-            'message' => 'Orders retrieved successfully'
-        ], 200);
+        return $this->successResponse(
+            OrderResource::collection($orders),
+            'Orders retrieved successfully'
+        );
     }
 
     /**
@@ -74,24 +75,18 @@ class OrderController extends Controller
                 $product = $this->productRepository->find($item['product_id']);
 
                 if (!$product) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => [
-                            'message' => "Product with ID {$item['product_id']} not found",
-                            'code' => 'PRODUCT_NOT_FOUND'
-                        ]
-                    ], 404);
+                    return $this->notFoundResponse(
+                        "Product with ID {$item['product_id']} not found",
+                        ErrorCode::PRODUCT_NOT_FOUND
+                    );
                 }
 
                 // Check if product has enough stock
                 if (!$product->hasStock($item['quantity'])) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => [
-                            'message' => "Insufficient stock for product: {$product->name}. Available: {$product->stock_quantity}",
-                            'code' => 'INSUFFICIENT_STOCK'
-                        ]
-                    ], 400);
+                    return $this->errorResponse(
+                        "Insufficient stock for product: {$product->name}. Available: {$product->stock_quantity}",
+                        ErrorCode::INSUFFICIENT_STOCK
+                    );
                 }
 
                 $orderData['items'][] = [
@@ -108,29 +103,50 @@ class OrderController extends Controller
                 // Decrease stock for each product
                 foreach ($order->items as $item) {
                     $product = $this->productRepository->find($item->product_id);
-                    $product->decreaseStock($item->quantity);
+                    $product?->decreaseStock($item->quantity);
                 }
 
                 return $order;
             });
 
+            // Load relationships for response
+            $order->load(['items.product', 'customer']);
+
             // Dispatch order placed event
             event(new OrderPlaced($order));
 
-            return response()->json([
-                'success' => true,
-                'data' => $order,
-                'message' => 'Order created successfully'
-            ], 201);
+            // Send order confirmation email
+            try {
+                Mail::to($order->customer->email)
+                    ->queue(new OrderConfirmationMail($order));
+
+                Log::info('Order confirmation email queued', [
+                    'order_id' => $order->id,
+                    'customer_email' => $order->customer->email,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to queue order confirmation email', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the order if email fails
+            }
+
+            return $this->createdResponse(
+                new OrderResource($order),
+                'Order created successfully'
+            );
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Failed to create order: ' . $e->getMessage(),
-                    'code' => 'ORDER_CREATION_FAILED'
-                ]
-            ], 500);
+            Log::error('Order creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->serverErrorResponse(
+                'Failed to create order: ' . $e->getMessage(),
+                ErrorCode::ORDER_CREATION_FAILED
+            );
         }
     }
 
@@ -145,20 +161,19 @@ class OrderController extends Controller
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Order not found',
-                    'code' => 'ORDER_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::ORDER_NOT_FOUND),
+                ErrorCode::ORDER_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-            'message' => 'Order retrieved successfully'
-        ], 200);
+        // Load relationships
+        $order->load(['items.product', 'customer', 'payment']);
+
+        return $this->successResponse(
+            new OrderResource($order),
+            'Order retrieved successfully'
+        );
     }
 
     /**
@@ -170,22 +185,37 @@ class OrderController extends Controller
      */
     public function updateStatus(UpdateOrderStatusRequest $request, int $id): JsonResponse
     {
-        $order = $this->orderRepository->updateStatus($id, $request->status);
+        $order = $this->orderRepository->find($id);
 
         if (!$order) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Order not found',
-                    'code' => 'ORDER_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::ORDER_NOT_FOUND),
+                ErrorCode::ORDER_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $order,
-            'message' => 'Order status updated successfully'
-        ], 200);
+        $newStatus = OrderStatus::from($request->status);
+
+        // Check if status transition is valid
+        if ($order->status->isFinal()) {
+            return $this->errorResponse(
+                "Cannot update order status. Order is already in final state: {$order->status->label()}",
+                ErrorCode::INVALID_ORDER_STATUS
+            );
+        }
+
+        // Update status
+        $order = $this->orderRepository->updateStatus($id, $request->status);
+        $order->load(['items.product', 'customer', 'payment']);
+
+        Log::info('Order status updated', [
+            'order_id' => $order->id,
+            'new_status' => $newStatus->value,
+        ]);
+
+        return $this->successResponse(
+            new OrderResource($order),
+            'Order status updated successfully'
+        );
     }
 }

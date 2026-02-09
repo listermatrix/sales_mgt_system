@@ -2,28 +2,36 @@
 
 namespace App\Services\Product\Http\Controllers;
 
+
+
 use App\Http\Controllers\Controller;
-use App\Services\Product\Events\ProductStockUpdated;
 use App\Services\Product\Http\Requests\StoreProductRequest;
 use App\Services\Product\Http\Requests\UpdateProductRequest;
+use App\Services\Product\Http\Resources\ProductResource;
 use App\Services\Product\Repositories\ProductRepositoryInterface;
+use App\Services\Product\Events\ProductStockUpdated;
+use App\Traits\ApiResponse;
+use App\Constants\ErrorCode;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Product Controller
+ *
+ * Handles product CRUD operations with API resources
+ */
 class ProductController extends Controller
 {
-    /**
-     * @var ProductRepositoryInterface
-     */
-    protected ProductRepositoryInterface $productRepository;
+    use ApiResponse;
 
     /**
      * ProductController constructor.
      *
      * @param ProductRepositoryInterface $productRepository
      */
-    public function __construct(ProductRepositoryInterface $productRepository)
+    public function __construct(
+        private readonly ProductRepositoryInterface $productRepository
+    )
     {
-        $this->productRepository = $productRepository;
     }
 
     /**
@@ -35,11 +43,10 @@ class ProductController extends Controller
     {
         $products = $this->productRepository->all();
 
-        return response()->json([
-            'success' => true,
-            'data' => $products,
-            'message' => 'Products retrieved successfully'
-        ], 200);
+        return $this->successResponse(
+            ProductResource::collection($products),
+            'Products retrieved successfully'
+        );
     }
 
     /**
@@ -52,11 +59,10 @@ class ProductController extends Controller
     {
         $product = $this->productRepository->create($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-            'message' => 'Product created successfully'
-        ], 201);
+        return $this->createdResponse(
+            new ProductResource($product),
+            'Product created successfully'
+        );
     }
 
     /**
@@ -70,20 +76,16 @@ class ProductController extends Controller
         $product = $this->productRepository->find($id);
 
         if (!$product) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Product not found',
-                    'code' => 'PRODUCT_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::PRODUCT_NOT_FOUND),
+                ErrorCode::PRODUCT_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-            'message' => 'Product retrieved successfully'
-        ], 200);
+        return $this->successResponse(
+            new ProductResource($product),
+            'Product retrieved successfully'
+        );
     }
 
     /**
@@ -98,27 +100,23 @@ class ProductController extends Controller
         $oldProduct = $this->productRepository->find($id);
 
         if (!$oldProduct) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Product not found',
-                    'code' => 'PRODUCT_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::PRODUCT_NOT_FOUND),
+                ErrorCode::PRODUCT_NOT_FOUND
+            );
         }
 
         $product = $this->productRepository->update($id, $request->validated());
 
         // Dispatch event if stock quantity changed
-        if ($request->has('stock_quantity') && $oldProduct->stock_quantity !== $product->stock_quantity) {
+        if ($request->has('stock_quantity') && $oldProduct->stock_quantity !== $product?->stock_quantity) {
             event(new ProductStockUpdated($product, $oldProduct->stock_quantity));
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $product,
-            'message' => 'Product updated successfully'
-        ], 200);
+        return $this->successResponse(
+            new ProductResource($product),
+            'Product updated successfully'
+        );
     }
 
     /**
@@ -132,19 +130,15 @@ class ProductController extends Controller
         $deleted = $this->productRepository->delete($id);
 
         if (!$deleted) {
-            return response()->json([
-                'success' => false,
-                'error' => [
-                    'message' => 'Product not found',
-                    'code' => 'PRODUCT_NOT_FOUND'
-                ]
-            ], 404);
+            return $this->notFoundResponse(
+                ErrorCode::getMessage(ErrorCode::PRODUCT_NOT_FOUND),
+                ErrorCode::PRODUCT_NOT_FOUND
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => null,
-            'message' => 'Product deleted successfully'
-        ], 200);
+        return $this->successResponse(
+            null,
+            'Product deleted successfully'
+        );
     }
 }
