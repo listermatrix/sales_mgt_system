@@ -575,8 +575,8 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Built with ❤️ using Laravel 11, PHP 8.2+, and Modern Architecture Patterns**
+**Built with ❤️ using Laravel 12, PHP 8.2+, and Modern Architecture Patterns**
 
 **Version**: 2.0.0  
 **Status**: Production Ready  
-**Last Updated**: February 2024
+**Last Updated**: February 2026
