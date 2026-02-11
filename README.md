@@ -1,8 +1,8 @@
 # Sales Management System v2.0
 
 ## Purpose
-This project is a sample application created solely for demonstration and
-evaluation purposes. It is not intended for production use.
+A professional, enterprise-grade sales management system demonstrating advanced Laravel concepts, microservices architecture, and production-ready code patterns.
+
 
 ![Laravel](https://img.shields.io/badge/Laravel-12.x-red)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-blue)
