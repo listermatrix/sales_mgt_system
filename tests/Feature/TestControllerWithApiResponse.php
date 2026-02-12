@@ -10,7 +10,7 @@ class TestControllerWithApiResponse
 {
     use ApiResponse;
 
-    public function callSuccessResponse($data, $message, $statusCode = null): JsonResponse
+    public function callSuccessResponseWrapper($data,$message = 'Operation successful', $statusCode = null): JsonResponse
     {
         return $this->successResponse($data, $message, $statusCode ?? HttpStatusCode::OK);
     }
@@ -74,7 +74,7 @@ describe('ApiResponse Trait', function () {
 
     it('returns success response with correct structure', function () {
         $data = ['id' => 1, 'name' => 'Test'];
-        $response = $this->controller->callSuccessResponse($data, 'Success message');
+        $response = $this->controller->callSuccessResponseWrapper($data, 'Success message');
 
         expect($response)->toBeInstanceOf(JsonResponse::class)
             ->and($response->getStatusCode())->toBe(HttpStatusCode::OK)
@@ -202,7 +202,7 @@ describe('ApiResponse Trait', function () {
     });
 
     it('allows custom status codes in success response', function () {
-        $response = $this->controller->successResponse(
+        $response = $this->controller->callSuccessResponseWrapper(
             ['data' => 'test'],
             'Accepted',
             HttpStatusCode::ACCEPTED
@@ -212,7 +212,7 @@ describe('ApiResponse Trait', function () {
     });
 
     it('uses default success message when not provided', function () {
-        $response = $this->controller->successResponse(['id' => 1]);
+        $response = $this->controller->callSuccessResponseWrapper(['id' => 1]);
 
         expect($response->getData(true)['message'])->toBe('Operation successful');
     });
