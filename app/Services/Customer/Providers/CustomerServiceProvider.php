@@ -29,6 +29,6 @@ class CustomerServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../Routes/customer.php');
 
         // Load migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../Migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 }

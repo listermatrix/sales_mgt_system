@@ -32,7 +32,7 @@ class OrderServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../Routes/order.php');
 
         // Load migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../Migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
         // Register event listeners
         Event::listen(
