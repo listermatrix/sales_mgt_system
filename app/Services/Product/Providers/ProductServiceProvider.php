@@ -29,6 +29,6 @@ class ProductServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../Routes/product.php');
 
         // Load migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../Migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 }
